@@ -43,6 +43,7 @@ fi
 # 6. Create Jenkins home directory
 echo "[$(date)] Creating Jenkins home directory..."
 mkdir -p ${JENKINS_HOME}
+chmod -R 777 ${JENKINS_HOME}
 chown -R ${JENKINS_USER}:${JENKINS_USER} ${JENKINS_HOME}
 
 # 7. Configure Podman storage for rootless
@@ -84,7 +85,7 @@ ExecStartPre=-/usr/bin/podman rm jenkins
 ExecStart=/usr/bin/podman run --name jenkins \\
   -p 8080:8080 \\
   -p 50000:50000 \\
-  -v ${JENKINS_HOME}:/var/jenkins_home:Z \\
+  -v ${JENKINS_HOME}:/var/jenkins_home \\
   docker.io/jenkins/jenkins:lts
 ExecStop=/usr/bin/podman stop jenkins
 
