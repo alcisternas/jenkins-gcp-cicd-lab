@@ -91,15 +91,49 @@ ExecStart=/usr/bin/podman run --name jenkins \\
   -p 50000:50000 \\
   -v ${JENKINS_HOME}:/var/jenkins_home \\
   -v /home/${JENKINS_USER}/jenkins-casc.yaml:/var/jenkins_home/casc_configs/jenkins.yaml:ro \\
+  -v /home/${JENKINS_USER}/plugins.txt:/usr/share/jenkins/ref/plugins.txt:ro \\
   -e CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml \\
+  -e JENKINS_ADMIN_ID=jenks \\
+  -e JENKINS_ADMIN_PASSWORD=admin123 \\
   docker.io/jenkins/jenkins:lts
-  ExecStop=/usr/bin/podman stop jenkins
+ExecStartPost=/bin/bash -c 'sleep 90 && /usr/bin/podman exec jenkins jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt || true'
+ExecStop=/usr/bin/podman stop jenkins
 
 [Install]
 WantedBy=default.target
 EOF
 
 chown -R ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/.config/systemd
+
+# 9.4 Create plugins.txt for automated installation
+echo "[$(date)] Creating plugins.txt..."
+cat > /home/${JENKINS_USER}/plugins.txt <<'EOF'
+git:latest
+workflow-aggregator:latest
+pipeline-stage-view:latest
+credentials-binding:latest
+ssh-slaves:latest
+google-oauth-plugin:latest
+google-storage-plugin:latest
+docker-workflow:latest
+docker-plugin:latest
+terraform:latest
+configuration-as-code:latest
+slack:latest
+email-ext:latest
+mailer:latest
+matrix-auth:latest
+authorize-project:latest
+blueocean:latest
+dark-theme:latest
+workspace-cleanup:latest
+timestamper:latest
+build-timeout:latest
+credentials:latest
+plain-credentials:latest
+EOF
+
+chown ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/plugins.txt
 
 # 9.5 Create Jenkins Configuration as Code file
 echo "[$(date)] Creating Jenkins CasC configuration..."
