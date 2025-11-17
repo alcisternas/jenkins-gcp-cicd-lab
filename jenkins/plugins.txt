@@ -1,0 +1,40 @@
+# Core plugins
+git:latest
+workflow-aggregator:latest
+pipeline-stage-view:latest
+credentials-binding:latest
+ssh-slaves:latest
+
+# GCP Integration
+google-oauth-plugin:latest
+google-storage-plugin:latest
+
+# Docker & Containers
+docker-workflow:latest
+docker-plugin:latest
+
+# Terraform
+terraform:latest
+
+# Configuration as Code
+configuration-as-code:latest
+
+# Notifications
+slack:latest
+email-ext:latest
+mailer:latest
+
+# Security & Authorization
+matrix-auth:latest
+authorize-project:latest
+
+# UI Enhancements
+blueocean:latest
+dark-theme:latest
+
+# Utilities
+workspace-cleanup:latest
+timestamper:latest
+build-timeout:latest
+credentials:latest
+plain-credentials:latest
