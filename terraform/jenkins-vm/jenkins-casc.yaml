@@ -1,33 +1,7 @@
 jenkins:
-  systemMessage: |
-    Jenkins configured automatically via Configuration as Code (JCasC)
-    Lab: Jenkins + Git - Pipeline CI/CD en GCP
-    
+  systemMessage: "Jenkins configured automatically via Configuration as Code"
   numExecutors: 2
-  mode: NORMAL
   
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-        - id: "${JENKINS_ADMIN_ID}"
-          password: "${JENKINS_ADMIN_PASSWORD}"
-  
-  authorizationStrategy:
-    globalMatrix:
-      permissions:
-        - "Overall/Administer:${JENKINS_ADMIN_ID}"
-        - "Overall/Read:authenticated"
-  
-  remotingSecurity:
-    enabled: true
-
-security:
-  queueItemAuthenticator:
-    authenticators:
-      - global:
-          strategy: triggeringUsersAuthorizationStrategy
-
 tool:
   git:
     installations:
@@ -55,4 +29,3 @@ tool:
 unclassified:
   location:
     url: "http://JENKINS_URL:8080/"
-    adminAddress: "jenkins-admin@example.com"
