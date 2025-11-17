@@ -1,0 +1,31 @@
+jenkins:
+  systemMessage: "Jenkins configured automatically via Configuration as Code"
+  numExecutors: 2
+  
+tool:
+  git:
+    installations:
+      - name: "Default"
+        home: "git"
+  
+  terraform:
+    installations:
+      - name: "terraform"
+        properties:
+          - installSource:
+              installers:
+                - terraformInstaller:
+                    id: "1.9.11-linux-amd64"
+  
+  dockerTool:
+    installations:
+      - name: "docker"
+        properties:
+          - installSource:
+              installers:
+                - fromDocker:
+                    version: "latest"
+
+unclassified:
+  location:
+    url: "http://JENKINS_URL:8080/"

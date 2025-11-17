@@ -21,6 +21,10 @@ DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 echo "[$(date)] Installing Podman and dependencies..."
 apt-get install -y podman uidmap slirp4netns fuse-overlayfs
 
+# 2.5 Install Git
+echo "[$(date)] Installing Git..."
+apt-get install -y git
+
 # 3. Create Jenkins user (non-root)
 echo "[$(date)] Creating Jenkins user..."
 if ! id "${JENKINS_USER}" &>/dev/null; then
@@ -43,8 +47,8 @@ fi
 # 6. Create Jenkins home directory
 echo "[$(date)] Creating Jenkins home directory..."
 mkdir -p ${JENKINS_HOME}
-chmod -R 777 ${JENKINS_HOME}
 chown -R ${JENKINS_USER}:${JENKINS_USER} ${JENKINS_HOME}
+chmod -R 777 ${JENKINS_HOME}
 
 # 7. Configure Podman storage for rootless
 echo "[$(date)] Configuring Podman storage..."
@@ -86,14 +90,50 @@ ExecStart=/usr/bin/podman run --name jenkins \\
   -p 8080:8080 \\
   -p 50000:50000 \\
   -v ${JENKINS_HOME}:/var/jenkins_home \\
+  -v /home/${JENKINS_USER}/jenkins-casc.yaml:/var/jenkins_home/casc_configs/jenkins.yaml:ro \\
+  -e CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml \\
   docker.io/jenkins/jenkins:lts
-ExecStop=/usr/bin/podman stop jenkins
+  ExecStop=/usr/bin/podman stop jenkins
 
 [Install]
 WantedBy=default.target
 EOF
 
 chown -R ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/.config/systemd
+
+# 9.5 Create Jenkins Configuration as Code file
+echo "[$(date)] Creating Jenkins CasC configuration..."
+cat > /home/${JENKINS_USER}/jenkins-casc.yaml <<'EOF'
+jenkins:
+  systemMessage: "Jenkins configured automatically via Configuration as Code"
+  numExecutors: 2
+  
+tool:
+  git:
+    installations:
+      - name: "Default"
+        home: "git"
+  
+  terraform:
+    installations:
+      - name: "terraform"
+        properties:
+          - installSource:
+              installers:
+                - terraformInstaller:
+                    id: "1.9.11-linux-amd64"
+  
+  dockerTool:
+    installations:
+      - name: "docker"
+        properties:
+          - installSource:
+              installers:
+                - fromDocker:
+                    version: "latest"
+EOF
+
+chown ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/jenkins-casc.yaml
 
 # 10. Enable and start Jenkins service
 echo "[$(date)] Enabling and starting Jenkins service..."
