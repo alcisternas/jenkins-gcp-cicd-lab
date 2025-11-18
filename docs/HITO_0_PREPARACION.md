@@ -35,15 +35,16 @@
   - Principio de least privilege
 
 ### Roles Asignados al Service Account
-| Rol | Justificación |
-|-----|---------------|
-| `roles/artifactregistry.writer` | Push de imágenes Docker a Artifact Registry |
-| `roles/run.admin` | Deploy y gestión de Cloud Run services |
-| `roles/secretmanager.secretAccessor` | Lectura de secrets durante pipeline |
-| `roles/iam.serviceAccountUser` | Actuar como SA en deployments de Cloud Run |
-| `roles/compute.instanceAdmin.v1` | Terraform: Crear/gestionar VMs |
-| `roles/compute.networkUser` | Terraform: Usar redes VPC |
-| `roles/storage.admin` | Acceso al bucket de Terraform state en proyecto bootstrap |
+| Rol                                   | Justificación                                             |
+|-----                                  |---------------                                            |
+| `roles/artifactregistry.writer`       | Push de imágenes Docker a Artifact Registry               |
+| `roles/run.admin`                     | Deploy y gestión de Cloud Run services                    |
+| `roles/secretmanager.secretAccessor`  | Lectura de secrets durante pipeline                       |
+| `roles/iam.serviceAccountUser`        | Actuar como SA en deployments de Cloud Run                |
+| `roles/compute.instanceAdmin.v1`      | Terraform: Crear/gestionar VMs                            |
+| `roles/compute.networkUser`           | Terraform: Usar redes VPC                                 |
+| `roles/storage.admin`                 | Acceso al bucket de Terraform state en proyecto bootstrap |
+| `roles/secretmanager.viewer`          | Listar secretos en Secret Manager (agregado en H3)        |
 
 **Total**: 7 roles (principio de least privilege aplicado)
 

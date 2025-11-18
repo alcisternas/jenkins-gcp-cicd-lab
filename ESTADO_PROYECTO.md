@@ -4,7 +4,7 @@
 
 **Nombre del Proyecto:** jenkins-gcp-cicd-lab  
 **Fecha de Última Actualización:** 2025-11-18  
-**Estado General:** 2/12 Hitos Completados (16.7%)  
+**Estado General:** 3/12 Hitos Completados (25.0%)
 **Próximo Hito:** H3 - Conectar con Service Account
 
 ---
@@ -163,18 +163,18 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 - ✅ Reproducible con terraform destroy/apply
 - **Documentación:** docs/HITO_2_JENKINS_CONFIGURATION.md (completa)
 
+#### **Hito 3: Conectar con Service Account**
+- ✅ gcloud CLI integrado en imagen custom (v1.1.0)
+- ✅ Configuración automática via startup script
+- ✅ Application Default Credentials funcionando
+- ✅ 9 roles validados (agregado secretmanager.viewer)
+- ✅ Testing manual y automatizado exitoso
+- ✅ 100% reproducible con destroy/apply
+- **Documentación:** docs/HITO_3_SERVICE_ACCOUNT.md
+
 ---
 
-### ❌ Pendientes (10/12)
-
-#### **Hito 3: Conectar con Service Account (roles mínimos)** ← PRÓXIMO
-**Tareas:**
-- [ ] Configurar credenciales de GCP en Jenkins
-- [ ] Testear acceso a GCP desde Jenkins
-- [ ] Verificar que los 8 roles del SA son suficientes
-- [ ] Documentar en docs/HITO_3_SERVICE_ACCOUNT.md
-
-**Tiempo Estimado:** 30 minutos
+### ❌ Pendientes (9/12)
 
 ---
 
@@ -302,7 +302,6 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 
 ## Tiempo Restante Estimado
 ```
-H3:  30 min
 H4:  15 min
 H5:  30 min
 H6:  30 min
@@ -313,7 +312,7 @@ H10: 30 min
 H11: 45 min
 H12: 15 min
 ─────────────
-Total: 5.5 horas
+Total: 5.0 horas
 ```
 
 ---
