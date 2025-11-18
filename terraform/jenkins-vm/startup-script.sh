@@ -1,4 +1,4 @@
- #!/bin/bash
+﻿ #!/bin/bash
 set -e
 
 # Variables
@@ -63,13 +63,30 @@ EOF
 
 chown -R ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/.config
 
-# 7.5 Configure authentication for Artifact Registry
-echo "[$(date)] Configuring Artifact Registry authentication..."
-su - ${JENKINS_USER} -c "gcloud auth configure-docker us-central1-docker.pkg.dev --quiet"
+# 7.5 Configure gcloud CLI for jenkins user
+echo "[$(date)] Configuring gcloud CLI..."
+su - ${JENKINS_USER} -c "
+  # Set default project
+  gcloud config set project possible-sun-471215-d3
+  
+  # Set default region
+  gcloud config set compute/region us-central1
+  
+  # Set default zone
+  gcloud config set compute/zone us-central1-a
+  
+  # Configure Docker authentication for Artifact Registry
+  gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+  
+  # Verify configuration
+  echo '✅ gcloud CLI configured successfully'
+  gcloud config list
+"
 
 # 8. Pull Jenkins custom image from Artifact Registry
 echo "[$(date)] Pulling Jenkins custom image from Artifact Registry..."
-# Get access token and use it for authentication
+
+# 8.5 Get access token and use it for authentication
 TOKEN=$(su - ${JENKINS_USER} -c "gcloud auth print-access-token")
 su - ${JENKINS_USER} -c "podman pull ${JENKINS_IMAGE} --creds oauth2accesstoken:${TOKEN}"
 
@@ -115,3 +132,9 @@ su - ${JENKINS_USER} -c "XDG_RUNTIME_DIR=/run/user/1001 systemctl --user status 
 echo "=== Jenkins VM Setup Completed at $(date) ==="
 echo "Jenkins will be available at http://\$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H 'Metadata-Flavor: Google'):8080"
 echo "Login: jenks / admin123"
+echo ""
+echo "gcloud CLI configured with:"
+echo "  - Project: possible-sun-471215-d3"
+echo "  - Region: us-central1"
+echo "  - Zone: us-central1-a"
+echo "  - Docker auth: us-central1-docker.pkg.dev"
