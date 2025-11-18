@@ -69,7 +69,9 @@ su - ${JENKINS_USER} -c "gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # 8. Pull Jenkins custom image from Artifact Registry
 echo "[$(date)] Pulling Jenkins custom image from Artifact Registry..."
-su - ${JENKINS_USER} -c "podman pull ${JENKINS_IMAGE}"
+# Get access token and use it for authentication
+TOKEN=$(su - ${JENKINS_USER} -c "gcloud auth print-access-token")
+su - ${JENKINS_USER} -c "podman pull ${JENKINS_IMAGE} --creds oauth2accesstoken:${TOKEN}"
 
 # 9. Create systemd service for Jenkins
 echo "[$(date)] Creating systemd service..."
