@@ -16,7 +16,7 @@ matrix-auth:latest
 authorize-project:latest
 blueocean:latest
 dark-theme:latest
-workspace-cleanup:latest
+ws-cleanup:latest
 timestamper:latest
 build-timeout:latest
 credentials:latest

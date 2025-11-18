@@ -5,6 +5,7 @@ set -e
 JENKINS_USER="jenkins"
 JENKINS_HOME="/home/${JENKINS_USER}/jenkins_home"
 LOG_FILE="/var/log/jenkins-setup.log"
+JENKINS_IMAGE="us-central1-docker.pkg.dev/possible-sun-471215-d3/apps/jenkins-custom:latest"
 
 # Redirect output to log file
 exec > >(tee -a ${LOG_FILE})
@@ -14,28 +15,25 @@ echo "=== Jenkins VM Setup Started at $(date) ==="
 
 # 1. Update system
 echo "[$(date)] Updating system packages..."
-apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
 # 2. Install Podman and dependencies
 echo "[$(date)] Installing Podman and dependencies..."
 apt-get install -y podman uidmap slirp4netns fuse-overlayfs
 
-# 2.5 Install Git
-echo "[$(date)] Installing Git..."
-apt-get install -y git
-
 # 3. Create Jenkins user (non-root)
 echo "[$(date)] Creating Jenkins user..."
 if ! id "${JENKINS_USER}" &>/dev/null; then
     useradd -m -s /bin/bash ${JENKINS_USER}
+    echo "${JENKINS_USER}:$(openssl rand -base64 32)" | chpasswd
 fi
 
-# 4. Enable lingering for Jenkins user
+# 4. Enable lingering for jenkins user (keeps user services running)
 echo "[$(date)] Enabling lingering for Jenkins user..."
 loginctl enable-linger ${JENKINS_USER}
 
-# 5. Configure subuid and subgid for rootless containers
+# 5. Configure subuid and subgid for rootless Podman
 echo "[$(date)] Configuring subuid and subgid..."
 if ! grep -q "^${JENKINS_USER}:" /etc/subuid; then
     echo "${JENKINS_USER}:100000:65536" >> /etc/subuid
@@ -56,28 +54,25 @@ mkdir -p /home/${JENKINS_USER}/.config/containers
 cat > /home/${JENKINS_USER}/.config/containers/storage.conf <<EOF
 [storage]
 driver = "overlay"
-runroot = "/run/user/$(id -u ${JENKINS_USER})/containers"
+runroot = "/run/user/1001/containers"
 graphroot = "/home/${JENKINS_USER}/.local/share/containers/storage"
 
 [storage.options]
-pull_options = {enable_partial_images = "true", use_hard_links = "false", ostree_repos=""}
-
-[storage.options.overlay]
-mountopt = "nodev"
+mount_program = "/usr/bin/fuse-overlayfs"
 EOF
 
 chown -R ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/.config
 
-# 8. Pull Jenkins image as jenkins user
-echo "[$(date)] Pulling Jenkins LTS image..."
-su - ${JENKINS_USER} -c "podman pull docker.io/jenkins/jenkins:lts"
+# 8. Pull Jenkins custom image from Artifact Registry
+echo "[$(date)] Pulling Jenkins custom image from Artifact Registry..."
+su - ${JENKINS_USER} -c "podman pull ${JENKINS_IMAGE}"
 
 # 9. Create systemd service for Jenkins
 echo "[$(date)] Creating systemd service..."
 mkdir -p /home/${JENKINS_USER}/.config/systemd/user
 cat > /home/${JENKINS_USER}/.config/systemd/user/jenkins.service <<EOF
 [Unit]
-Description=Jenkins CI/CD Server (Rootless Podman)
+Description=Jenkins CI/CD Server (Rootless Podman - Custom Image)
 After=network-online.target
 Wants=network-online.target
 
@@ -90,13 +85,10 @@ ExecStart=/usr/bin/podman run --name jenkins \\
   -p 8080:8080 \\
   -p 50000:50000 \\
   -v ${JENKINS_HOME}:/var/jenkins_home \\
-  -v /home/${JENKINS_USER}/jenkins-casc.yaml:/var/jenkins_home/casc_configs/jenkins.yaml:ro \\
-  -v /home/${JENKINS_USER}/plugins.txt:/usr/share/jenkins/ref/plugins.txt:ro \\
-  -e CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml \\
   -e JENKINS_ADMIN_ID=jenks \\
   -e JENKINS_ADMIN_PASSWORD=admin123 \\
-  docker.io/jenkins/jenkins:lts
-ExecStartPost=/bin/bash -c 'sleep 90 && /usr/bin/podman exec jenkins jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt || true'
+  -e JENKINS_URL=http://\$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H "Metadata-Flavor: Google"):8080 \\
+  ${JENKINS_IMAGE}
 ExecStop=/usr/bin/podman stop jenkins
 
 [Install]
@@ -105,110 +97,16 @@ EOF
 
 chown -R ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/.config/systemd
 
-# 9.4 Create plugins.txt for automated installation
-echo "[$(date)] Creating plugins.txt..."
-cat > /home/${JENKINS_USER}/plugins.txt <<'EOF'
-git:latest
-workflow-aggregator:latest
-pipeline-stage-view:latest
-credentials-binding:latest
-ssh-slaves:latest
-google-oauth-plugin:latest
-google-storage-plugin:latest
-docker-workflow:latest
-docker-plugin:latest
-terraform:latest
-configuration-as-code:latest
-slack:latest
-email-ext:latest
-mailer:latest
-matrix-auth:latest
-authorize-project:latest
-blueocean:latest
-dark-theme:latest
-workspace-cleanup:latest
-timestamper:latest
-build-timeout:latest
-credentials:latest
-plain-credentials:latest
-EOF
-
-chown ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/plugins.txt
-
-# 9.5 Create Jenkins Configuration as Code file
-echo "[$(date)] Creating Jenkins CasC configuration..."
-cat > /home/${JENKINS_USER}/jenkins-casc.yaml <<'EOF'
-jenkins:
-  systemMessage: "Jenkins configured automatically via Configuration as Code"
-  numExecutors: 2
-  
-tool:
-  git:
-    installations:
-      - name: "Default"
-        home: "git"
-  
-  terraform:
-    installations:
-      - name: "terraform"
-        properties:
-          - installSource:
-              installers:
-                - terraformInstaller:
-                    id: "1.9.11-linux-amd64"
-  
-  dockerTool:
-    installations:
-      - name: "docker"
-        properties:
-          - installSource:
-              installers:
-                - fromDocker:
-                    version: "latest"
-EOF
-
-chown ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/jenkins-casc.yaml
-
 # 10. Enable and start Jenkins service
 echo "[$(date)] Enabling and starting Jenkins service..."
-su - ${JENKINS_USER} -c "systemctl --user daemon-reload"
-su - ${JENKINS_USER} -c "systemctl --user enable jenkins.service"
-su - ${JENKINS_USER} -c "systemctl --user start jenkins.service"
+su - ${JENKINS_USER} -c "XDG_RUNTIME_DIR=/run/user/1001 systemctl --user daemon-reload"
+su - ${JENKINS_USER} -c "XDG_RUNTIME_DIR=/run/user/1001 systemctl --user enable jenkins.service"
+su - ${JENKINS_USER} -c "XDG_RUNTIME_DIR=/run/user/1001 systemctl --user start jenkins.service"
 
-# 11. Create helper script
-echo "[$(date)] Creating helper scripts..."
-cat > /usr/local/bin/get-jenkins-password <<'SCRIPT'
-#!/bin/bash
-su - jenkins -c "podman exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword"
-SCRIPT
+# 11. Verify service status
+echo "[$(date)] Checking Jenkins service status..."
+su - ${JENKINS_USER} -c "XDG_RUNTIME_DIR=/run/user/1001 systemctl --user status jenkins.service --no-pager" || true
 
-chmod +x /usr/local/bin/get-jenkins-password
-
-cat > /usr/local/bin/jenkins-status <<'SCRIPT'
-#!/bin/bash
-echo "=== Jenkins Service Status ==="
-su - jenkins -c "systemctl --user status jenkins.service"
-echo ""
-echo "=== Podman Container Status ==="
-su - jenkins -c "podman ps -a | grep jenkins"
-SCRIPT
-
-chmod +x /usr/local/bin/jenkins-status
-
-# 12. Wait for Jenkins to be ready
-echo "[$(date)] Waiting for Jenkins to start (this may take 2-3 minutes)..."
-sleep 120
-
-# 13. Display completion info
 echo "=== Jenkins VM Setup Completed at $(date) ==="
-echo ""
-echo "Jenkins is running in rootless Podman container"
-echo "User: jenkins (UID: $(id -u ${JENKINS_USER}))"
-echo "Jenkins Home: ${JENKINS_HOME}"
-echo ""
-echo "Useful commands:"
-echo "  - Get initial admin password: get-jenkins-password"
-echo "  - Check Jenkins status: jenkins-status"
-echo "  - View logs: journalctl --user -u jenkins.service -f (as jenkins user)"
-echo ""
-echo "Access Jenkins at: http://$(curl -s ifconfig.me):8080"
+echo "Jenkins will be available at http://\$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H 'Metadata-Flavor: Google'):8080"
+echo "Login: jenks / admin123"

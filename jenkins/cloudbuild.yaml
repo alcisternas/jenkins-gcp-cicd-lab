@@ -1,0 +1,38 @@
+# Cloud Build configuration for Jenkins custom image
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:latest'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.0.0'
+      - '-f'
+      - 'jenkins/Dockerfile'
+      - 'jenkins'
+    
+  # Step 2: Push the image with latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:latest'
+    
+  # Step 3: Push the image with version tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.0.0'
+
+# Images to be pushed to Artifact Registry
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.0.0'
+
+# Build configuration
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  
+# Timeout
+timeout: '1200s'  # 20 minutes

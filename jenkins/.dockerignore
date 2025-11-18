@@ -1,0 +1,10 @@
+code jenkins\.dockerignore
+```
+
+**Contenido:**
+```
+README.md
+Jenkinsfile
+.git
+.gitignore
+*.md
