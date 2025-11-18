@@ -63,6 +63,10 @@ EOF
 
 chown -R ${JENKINS_USER}:${JENKINS_USER} /home/${JENKINS_USER}/.config
 
+# 7.5 Configure authentication for Artifact Registry
+echo "[$(date)] Configuring Artifact Registry authentication..."
+su - ${JENKINS_USER} -c "gcloud auth configure-docker us-central1-docker.pkg.dev --quiet"
+
 # 8. Pull Jenkins custom image from Artifact Registry
 echo "[$(date)] Pulling Jenkins custom image from Artifact Registry..."
 su - ${JENKINS_USER} -c "podman pull ${JENKINS_IMAGE}"
