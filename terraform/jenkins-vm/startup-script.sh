@@ -93,7 +93,6 @@ ExecStart=/usr/bin/podman run --name jenkins \\
   -v ${JENKINS_HOME}:/var/jenkins_home \\
   -e JENKINS_ADMIN_ID=jenks \\
   -e JENKINS_ADMIN_PASSWORD=admin123 \\
-  -e JENKINS_URL=http://\$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H "Metadata-Flavor: Google"):8080 \\
   ${JENKINS_IMAGE}
 ExecStop=/usr/bin/podman stop jenkins
 
