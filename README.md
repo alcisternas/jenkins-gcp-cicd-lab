@@ -3,7 +3,7 @@
 Laboratorio completo de CI/CD usando Jenkins, Git, Terraform, Docker y Google Cloud Platform.
 
 ## Objetivo
-Implementar un pipeline enterprise-grade de CI/CD siguiendo mejores prácticas de DevOps, seguridad y automatización.
+Implementar un pipeline CI/CD enterprise-grade siguiendo las mejores prácticas de DevOps, seguridad, automatización e Infrastructure as Code.
 
 ## Arquitectura
 - **Jenkins**: VM en GCE con Podman
@@ -32,3 +32,4 @@ Implementar un pipeline enterprise-grade de CI/CD siguiendo mejores prácticas d
 - [x] Hito 2: JCasC + Custom Image
 - [x] Hito 3: Service Account + ADC
 - [x] Hito 4: Git Commands (Completado)
+
