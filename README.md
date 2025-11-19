@@ -31,4 +31,4 @@ Implementar un pipeline enterprise-grade siguiendo mejores prácticas de DevOps 
 - [x] Hito 1: Jenkins + Podman
 - [x] Hito 2: JCasC + Custom Image
 - [x] Hito 3: Service Account + ADC
-- [o] Hito 4: Git Commands (en progreso)
+- [x] Hito 4: Git Commands (Completado)
