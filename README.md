@@ -28,5 +28,7 @@ Implementar un pipeline enterprise-grade siguiendo mejores prácticas de DevOps 
 
 ## Hitos Completados
 - [x] Hito 0: Preparación del entorno
-- [ ] Hito 1: Instalar Jenkins en GCE con Podman
-- [ ] ... (resto de hitos)
+- [x] Hito 1: Jenkins + Podman
+- [x] Hito 2: JCasC + Custom Image
+- [x] Hito 3: Service Account + ADC
+- [o] Hito 4: Git Commands (en progreso)
