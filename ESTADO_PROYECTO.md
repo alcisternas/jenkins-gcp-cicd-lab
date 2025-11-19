@@ -4,8 +4,8 @@
 
 **Nombre del Proyecto:** jenkins-gcp-cicd-lab  
 **Fecha de Última Actualización:** 2025-11-18  
-**Estado General:** 3/12 Hitos Completados (25.0%)
-**Próximo Hito:** H3 - Conectar con Service Account
+**Estado General:** 4/12 Hitos Completados (33.3%)
+**Próximo Hito:** H5 
 
 ---
 
@@ -172,29 +172,25 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 - ✅ 100% reproducible con destroy/apply
 - **Documentación:** docs/HITO_3_SERVICE_ACCOUNT.md
 
----
-
-### ❌ Pendientes (9/12)
-
----
-
 #### **Hito 4: Hacer comandos básicos de Git**
-**Estado:** 🟡 Parcialmente completado durante H2
-
-**Completado:**
 - ✅ `git commit`
 - ✅ `git push`
 - ✅ `git revert`
 - ✅ `git diff`
 - ✅ `git log`
 - ✅ `git status`
-
-**Pendiente:**
-- [ ] `git pull` (demostrar)
-- [ ] Resolver conflictos (demo)
-- [ ] Documentar en docs/HITO_4_GIT_COMMANDS.md
+- ✅ `git pull` (demostrado en H4)
+- ✅ Resolver conflictos (demo)
+- ✅ Documentar en docs/HITO_4_GIT_COMMANDS.md
 
 **Tiempo Estimado:** 15 minutos
+
+---
+
+### ❌ Pendientes (8/12)
+
+---
+
 
 ---
 
@@ -302,7 +298,6 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 
 ## Tiempo Restante Estimado
 ```
-H4:  15 min
 H5:  30 min
 H6:  30 min
 H7:  45 min
@@ -312,7 +307,7 @@ H10: 30 min
 H11: 45 min
 H12: 15 min
 ─────────────
-Total: 5.0 horas
+Total: 4.75 horas
 ```
 
 ---
