@@ -3,7 +3,7 @@ FROM jenkins/jenkins:lts-jdk17
 # Metadata
 LABEL maintainer="alejandro.cisternas@gmail.com"
 LABEL description="Custom Jenkins image with JCasC for GCP CI/CD Lab"
-LABEL version="1.2.0"
+LABEL version="1.3.0"
 
 # Switch to root to install system packages
 USER root

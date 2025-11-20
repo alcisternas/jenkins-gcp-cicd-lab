@@ -1,4 +1,4 @@
-jenkins:
+﻿jenkins:
   systemMessage: |
     Jenkins configured automatically via Configuration as Code (JCasC)
     Lab: Jenkins + Git - Pipeline CI/CD en GCP
@@ -56,3 +56,167 @@ unclassified:
   location:
     url: "${JENKINS_URL:-http://localhost:8080}"
     adminAddress: "jenkins-admin@example.com"
+
+jobs:
+  - script: >
+      pipelineJob('github-integration-test') {
+        description('Test GitHub integration with Jenkins')
+        properties {
+          githubProjectUrl('https://github.com/alcisternas/jenkins-gcp-cicd-lab/')
+        }
+        triggers {
+          githubPush()
+        }
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                stages {
+                  stage('Clone Repository') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Cloning GitHub Repository'
+                      echo '=========================================='
+                      git branch: 'main',
+                          credentialsId: 'github-token',
+                          url: 'https://github.com/alcisternas/jenkins-gcp-cicd-lab.git'
+                    }
+                  }
+                  stage('List Files') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Repository Contents'
+                      echo '=========================================='
+                      sh 'ls -la'
+                      sh 'pwd'
+                    }
+                  }
+                  stage('Show Git Info') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Git Information'
+                      echo '=========================================='
+                      sh 'git branch'
+                      sh 'git log --oneline -5'
+                    }
+                  }
+                }
+                post {
+                  success {
+                    echo '✅ GitHub Integration Successful!'
+                  }
+                }
+              }
+            '''.stripIndent())
+            sandbox()
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('terraform-integration-test') {
+        description('Test Terraform integration with Jenkins using ADC')
+        properties {
+          githubProjectUrl('https://github.com/alcisternas/jenkins-gcp-cicd-lab/')
+        }
+        triggers {
+          githubPush()
+        }
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                environment {
+                  TF_IN_AUTOMATION = 'true'
+                  TF_INPUT = 'false'
+                }
+                stages {
+                  stage('Checkout') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Stage 1: Checkout Repository'
+                      echo '=========================================='
+                      git branch: 'main',
+                          credentialsId: 'github-token',
+                          url: 'https://github.com/alcisternas/jenkins-gcp-cicd-lab.git'
+                    }
+                  }
+                  stage('Verify Tools') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Stage 2: Verify Terraform and gcloud'
+                      echo '=========================================='
+                      sh 'terraform version'
+                      sh 'gcloud version'
+                      sh 'gcloud auth list'
+                    }
+                  }
+                  stage('Terraform Init') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Stage 3: Terraform Init'
+                      echo '=========================================='
+                      dir('terraform/test-module') {
+                        sh 'terraform init'
+                      }
+                    }
+                  }
+                  stage('Terraform Validate') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Stage 4: Terraform Validate'
+                      echo '=========================================='
+                      dir('terraform/test-module') {
+                        sh 'terraform validate'
+                      }
+                    }
+                  }
+                  stage('Terraform Plan') {
+                    steps {
+                      echo '=========================================='
+                      echo 'Stage 5: Terraform Plan'
+                      echo '=========================================='
+                      dir('terraform/test-module') {
+                        sh 'terraform plan'
+                      }
+                    }
+                  }
+                }
+                post {
+                  success {
+                    echo '✅ Terraform Integration Successful!'
+                  }
+                }
+              }
+            '''.stripIndent())
+            sandbox()
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('jenkins-cicd-pipeline') {
+        description('Main CI/CD pipeline from Jenkinsfile in repository')
+        properties {
+          githubProjectUrl('https://github.com/alcisternas/jenkins-gcp-cicd-lab/')
+        }
+        triggers {
+          githubPush()
+        }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/alcisternas/jenkins-gcp-cicd-lab.git')
+                  credentials('github-token')
+                }
+                branches('*/main')
+              }
+            }
+            scriptPath('jenkins/Jenkinsfile')
+          }
+        }
+      }

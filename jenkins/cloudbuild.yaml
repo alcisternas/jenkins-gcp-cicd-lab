@@ -7,7 +7,7 @@ steps:
       - '-t'
       - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:latest'
       - '-t'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.2.0'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.3.0'
       - '-f'
       - 'jenkins/Dockerfile'
       - 'jenkins'
@@ -22,12 +22,12 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.2.0'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.3.0'
 
 # Images to be pushed to Artifact Registry
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:latest'
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.2.0'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/jenkins-custom:1.3.0'
 
 # Build configuration
 options:
