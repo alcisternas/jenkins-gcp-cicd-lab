@@ -1,10 +1,16 @@
 ﻿# Estado del Proyecto: Jenkins CI/CD Lab en GCP
 
+
+**Nota Importante:** Jenkins jobs actualmente requieren configuración manual post-deploy. 
+Mañana se migrará a JCasC (jenkins-casc.yaml) para hacerlos completamente reproducibles.
+
+
+
 ## Información General
 
 **Nombre del Proyecto:** jenkins-gcp-cicd-lab  
 **Fecha de Última Actualización:** 2025-11-18  
-**Estado General:** 5/12 Hitos Completados (41.7%)
+**Estado General:** 6/12 Hitos Completados (50.0%)
 **Próximo Hito:** H6  
 
 ---
@@ -183,8 +189,6 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 - ✅ Resolver conflictos (demo)
 - ✅ Documentar en docs/HITO_4_GIT_COMMANDS.md
 
-**Tiempo Estimado:** 15 minutos
-
 #### **Hito 5: Integrar Git con Jenkins**
 - ✅ GitHub Personal Access Token configurado
 - ✅ Webhook automático funcionando
@@ -193,31 +197,19 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 - ✅ Builds automáticos en cada push
 - **Documentación:** docs/HITO_5_GIT_JENKINS_INTEGRATION.md
 
----
-
-### ❌ Pendientes (7/12)
-
-#### **Hito 6: Integrar Jenkins con Terraform** ← PRÓXIMO
-
----
-
-### ❌ Pendientes (8/12)
+#### **Hito 6: Integrar Jenkins con Terraform**
+- ✅ Terraform 1.9.8 instalado en imagen custom (v1.2.0)
+- ✅ Pipeline ejecutando terraform init/validate/plan
+- ✅ ADC funcionando con Terraform
+- ✅ Módulo de test sin crear recursos reales
+- ✅ Webhook disparando builds automáticamente
+- **Documentación:** docs/HITO_6_JENKINS_TERRAFORM.md
 
 ---
 
-#### **Hito 6: Integrar Jenkins with Terraform**
-**Tareas:**
-- [ ] Validar Terraform tool en Jenkins (ya configurado)
-- [ ] Configurar credenciales GCP para Terraform en Jenkins
-- [ ] Crear primer pipeline que ejecute Terraform
-- [ ] Documentar en docs/HITO_6_JENKINS_TERRAFORM.md
+### ❌ Pendientes (6/12)
 
-**Tiempo Estimado:** 30 minutos
-
----
-
-#### **Hito 7: Crear Jenkinsfile con stages Terraform**
-**Tareas:**
+#### **Hito 7: Crear Jenkinsfile con stages Terraform** ← PRÓXIMO**Tareas:**
 - [ ] Crear `jenkins/Jenkinsfile` funcional
 - [ ] Stage: terraform validate
 - [ ] Stage: terraform plan
