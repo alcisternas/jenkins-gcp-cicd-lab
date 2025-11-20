@@ -33,3 +33,6 @@ Implementar un pipeline CI/CD enterprise-grade siguiendo las mejores prácticas 
 - [x] Hito 3: Service Account + ADC
 - [x] Hito 4: Git Commands (Completado)
 
+## Integración Continua
+- Jenkins integrado con GitHub via webhooks
+- Builds automáticos en cada push
