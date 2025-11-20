@@ -1,0 +1,71 @@
+﻿pipeline {
+    agent any
+    
+    environment {
+        PROJECT_NAME = 'jenkins-gcp-cicd-lab'
+        GCP_PROJECT = 'possible-sun-471215-d3'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 1: Checkout Code'
+                echo '=========================================='
+                echo "Repository: ${env.GIT_URL}"
+                echo "Branch: ${env.GIT_BRANCH}"
+                echo "Commit: ${env.GIT_COMMIT}"
+            }
+        }
+        
+        stage('Environment Info') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 2: Environment Information'
+                echo '=========================================='
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'git log --oneline -5'
+            }
+        }
+        
+        stage('Verify GCP Access') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 3: Verify GCP Integration'
+                echo '=========================================='
+                sh 'gcloud version'
+                sh 'gcloud config list'
+                sh 'gcloud auth list'
+            }
+        }
+        
+        stage('List Project Structure') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 4: Project Structure'
+                echo '=========================================='
+                sh 'tree -L 2 -I ".git" || find . -maxdepth 2 -not -path "*/\\.git/*" | head -20'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '=========================================='
+            echo '✅ Pipeline Completed Successfully!'
+            echo '=========================================='
+            echo "Project: ${PROJECT_NAME}"
+            echo "GCP Project: ${GCP_PROJECT}"
+            echo "Build: ${env.BUILD_NUMBER}"
+            echo "Started by: ${env.BUILD_USER_ID ?: 'GitHub Webhook'}"
+        }
+        failure {
+            echo '❌ Pipeline Failed!'
+            echo "Check logs for build #${env.BUILD_NUMBER}"
+        }
+        always {
+            echo "Pipeline finished at: ${new Date()}"
+        }
+    }
+}
