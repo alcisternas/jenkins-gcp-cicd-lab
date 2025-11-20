@@ -4,8 +4,8 @@
 
 **Nombre del Proyecto:** jenkins-gcp-cicd-lab  
 **Fecha de Última Actualización:** 2025-11-18  
-**Estado General:** 4/12 Hitos Completados (33.3%)
-**Próximo Hito:** H5 
+**Estado General:** 5/12 Hitos Completados (41.7%)
+**Próximo Hito:** H6  
 
 ---
 
@@ -185,24 +185,23 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 
 **Tiempo Estimado:** 15 minutos
 
+#### **Hito 5: Integrar Git con Jenkins**
+- ✅ GitHub Personal Access Token configurado
+- ✅ Webhook automático funcionando
+- ✅ SCM Polling como backup (cada 5 min)
+- ✅ Pipeline desde Jenkinsfile versionado
+- ✅ Builds automáticos en cada push
+- **Documentación:** docs/HITO_5_GIT_JENKINS_INTEGRATION.md
+
+---
+
+### ❌ Pendientes (7/12)
+
+#### **Hito 6: Integrar Jenkins con Terraform** ← PRÓXIMO
+
 ---
 
 ### ❌ Pendientes (8/12)
-
----
-
-
----
-
-#### **Hito 5: Integrar Git with Jenkins**
-**Tareas:**
-- [ ] Configurar GitHub credentials en Jenkins
-- [ ] Configurar webhook para triggers automáticos
-- [ ] SCM polling configurado
-- [ ] Crear primer job que clone un repo
-- [ ] Documentar en docs/HITO_5_GIT_JENKINS.md
-
-**Tiempo Estimado:** 30 minutos
 
 ---
 
