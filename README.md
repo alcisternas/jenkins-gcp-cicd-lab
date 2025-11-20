@@ -36,3 +36,8 @@ Implementar un pipeline CI/CD enterprise-grade siguiendo las mejores prácticas 
 ## Integración Continua
 - Jenkins integrado con GitHub via webhooks
 - Builds automáticos en cada push
+
+## Hito 6 - Jenkins + Terraform
+✅ Terraform instalado en imagen custom (v1.2.0)
+✅ Pipeline ejecuta comandos Terraform
+✅ ADC funcionando con Terraform
