@@ -3,7 +3,7 @@ FROM jenkins/jenkins:lts-jdk17
 # Metadata
 LABEL maintainer="alejandro.cisternas@gmail.com"
 LABEL description="Custom Jenkins image with JCasC for GCP CI/CD Lab"
-LABEL version="1.1.0"
+LABEL version="1.2.0"
 
 # Switch to root to install system packages
 USER root
@@ -23,6 +23,17 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
     tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
     apt-get update && \
     apt-get install -y google-cloud-cli && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Terraform
+RUN apt-get update && \
+    apt-get install -y wget unzip && \
+    wget https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip && \
+    unzip terraform_1.9.8_linux_amd64.zip && \
+    mv terraform /usr/local/bin/ && \
+    rm terraform_1.9.8_linux_amd64.zip && \
+    terraform version && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Switch back to jenkins user
