@@ -41,3 +41,8 @@ Implementar un pipeline CI/CD enterprise-grade siguiendo las mejores prácticas 
 ✅ Terraform instalado en imagen custom (v1.2.0)
 ✅ Pipeline ejecuta comandos Terraform
 ✅ ADC funcionando con Terraform
+
+## ✅ Jobs en JCasC - Completamente Reproducible
+- Jobs creados automáticamente desde jenkins-casc.yaml
+- Plugin job-dsl habilitado
+- Configuración 100% como código
