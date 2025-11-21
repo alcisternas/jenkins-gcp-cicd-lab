@@ -202,24 +202,21 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 - ✅ Webhook disparando builds automáticamente
 - **Documentación:** docs/HITO_6_JENKINS_TERRAFORM.md
 
----
-
-### ❌ Pendientes (6/12)
-
-#### **Hito 7: Crear Jenkinsfile con stages Terraform** ← PRÓXIMO**Tareas:**
-- [ ] Crear `jenkins/Jenkinsfile` funcional
-- [ ] Stage: terraform validate
-- [ ] Stage: terraform plan
-- [ ] Stage: terraform apply
-- [ ] Stage: terraform destroy
-- [ ] Pipeline ejecutándose correctamente
-- [ ] Documentar en docs/HITO_7_JENKINSFILE_TERRAFORM.md
-
-**Tiempo Estimado:** 45 minutos
+#### **Hito 7: Crear Jenkinsfile con stages Terraform**
+- ✅ Pipeline parametrizado (ACTION: plan/apply/destroy)
+- ✅ Stages condicionales con when clauses
+- ✅ Aprobaciones manuales para apply/destroy
+- ✅ AUTO_APPROVE parameter para automatización
+- ✅ Terraform init/validate/plan/apply/destroy
+- ✅ Cleanup automático de archivos temporales
+- ✅ Validado con 3 tests: plan, apply, destroy
+- **Documentación:** docs/HITO_7_JENKINSFILE_TERRAFORM.md
 
 ---
 
-#### **Hito 8: Integrar Registry Container with Jenkins**
+### ❌ Pendientes (5/12)
+
+#### **Hito 8: Integrar Jenkins con Registry** ← PRÓXIMO
 **Tareas:**
 - [ ] Configurar credenciales de Artifact Registry en Jenkins
 - [ ] Testear push desde Jenkins a Artifact Registry
