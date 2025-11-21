@@ -4,6 +4,22 @@ pipeline {
     environment {
         PROJECT_NAME = 'jenkins-gcp-cicd-lab'
         GCP_PROJECT = 'possible-sun-471215-d3'
+        TF_IN_AUTOMATION = 'true'
+        TF_INPUT = 'false'
+        TF_WORKSPACE = 'terraform/test-module'
+    }
+    
+    parameters {
+        choice(
+            name: 'ACTION',
+            choices: ['plan', 'apply', 'destroy'],
+            description: 'Terraform action to perform'
+        )
+        booleanParam(
+            name: 'AUTO_APPROVE',
+            defaultValue: false,
+            description: 'Skip manual approval for apply/destroy'
+        )
     }
     
     stages {
@@ -25,27 +41,208 @@ pipeline {
                 echo '=========================================='
                 sh 'pwd'
                 sh 'ls -la'
-                sh 'git log --oneline -5'
+                sh 'git log --oneline -3'
+            }
+        }
+        
+        stage('Verify Tools') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 3: Verify Required Tools'
+                echo '=========================================='
+                sh '''
+                    echo "Terraform version:"
+                    terraform version
+                    echo ""
+                    echo "gcloud version:"
+                    gcloud version
+                    echo ""
+                    echo "Git version:"
+                    git --version
+                '''
             }
         }
         
         stage('Verify GCP Access') {
             steps {
                 echo '=========================================='
-                echo 'Stage 3: Verify GCP Integration'
+                echo 'Stage 4: Verify GCP Authentication'
                 echo '=========================================='
-                sh 'gcloud version'
-                sh 'gcloud config list'
-                sh 'gcloud auth list'
+                sh '''
+                    echo "Active GCP Account:"
+                    gcloud auth list
+                    echo ""
+                    echo "GCP Config:"
+                    gcloud config list
+                    echo ""
+                    echo "Project Info:"
+                    gcloud projects describe ${GCP_PROJECT}
+                '''
             }
         }
         
-        stage('List Project Structure') {
+        stage('Terraform Init') {
             steps {
                 echo '=========================================='
-                echo 'Stage 4: Project Structure'
+                echo 'Stage 5: Terraform Init'
                 echo '=========================================='
-                sh 'tree -L 2 -I ".git" || find . -maxdepth 2 -not -path "*/\\.git/*" | head -20'
+                dir(env.TF_WORKSPACE) {
+                    sh '''
+                        terraform init -upgrade
+                        terraform version
+                    '''
+                }
+            }
+        }
+        
+        stage('Terraform Validate') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 6: Terraform Validate'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh 'terraform validate'
+                }
+            }
+        }
+        
+        stage('Terraform Format Check') {
+            steps {
+                echo '=========================================='
+                echo 'Stage 7: Terraform Format Check'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh '''
+                        echo "Checking Terraform formatting..."
+                        terraform fmt -check -recursive || echo "Warning: Some files need formatting"
+                    '''
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            when {
+                expression { params.ACTION == 'plan' || params.ACTION == 'apply' }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 8: Terraform Plan'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh '''
+                        terraform plan -out=tfplan
+                        echo ""
+                        echo "Plan saved to: tfplan"
+                    '''
+                }
+            }
+        }
+        
+        stage('Approval for Apply') {
+            when {
+                allOf {
+                    expression { params.ACTION == 'apply' }
+                    expression { params.AUTO_APPROVE == false }
+                }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 9: Manual Approval Required'
+                echo '=========================================='
+                script {
+                    input message: 'Apply Terraform changes?',
+                          ok: 'Apply',
+                          submitter: 'jenks'
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 10: Terraform Apply'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh '''
+                        if [ -f tfplan ]; then
+                            terraform apply tfplan
+                        else
+                            echo "Error: tfplan not found"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+        
+        stage('Terraform Destroy Plan') {
+            when {
+                expression { params.ACTION == 'destroy' }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 11: Terraform Destroy Plan'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh 'terraform plan -destroy -out=tfplan-destroy'
+                }
+            }
+        }
+        
+        stage('Approval for Destroy') {
+            when {
+                allOf {
+                    expression { params.ACTION == 'destroy' }
+                    expression { params.AUTO_APPROVE == false }
+                }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 12: Destroy Approval Required'
+                echo '=========================================='
+                script {
+                    input message: 'Destroy Terraform resources?',
+                          ok: 'Destroy',
+                          submitter: 'jenks'
+                }
+            }
+        }
+        
+        stage('Terraform Destroy') {
+            when {
+                expression { params.ACTION == 'destroy' }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 13: Terraform Destroy'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh '''
+                        if [ -f tfplan-destroy ]; then
+                            terraform apply tfplan-destroy
+                        else
+                            echo "Error: tfplan-destroy not found"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+        
+        stage('Terraform Output') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
+            steps {
+                echo '=========================================='
+                echo 'Stage 14: Terraform Outputs'
+                echo '=========================================='
+                dir(env.TF_WORKSPACE) {
+                    sh 'terraform output -json || echo "No outputs available"'
+                }
             }
         }
     }
@@ -57,15 +254,24 @@ pipeline {
             echo '=========================================='
             echo "Project: ${PROJECT_NAME}"
             echo "GCP Project: ${GCP_PROJECT}"
+            echo "Action: ${params.ACTION}"
             echo "Build: ${env.BUILD_NUMBER}"
-            echo "Started by: ${env.BUILD_USER_ID ?: 'GitHub Webhook'}"
         }
         failure {
+            echo '=========================================='
             echo '❌ Pipeline Failed!'
+            echo '=========================================='
+            echo "Action: ${params.ACTION}"
             echo "Check logs for build #${env.BUILD_NUMBER}"
         }
         always {
             echo "Pipeline finished at: ${new Date()}"
+            dir(env.TF_WORKSPACE) {
+                sh '''
+                    echo "Cleaning up plan files..."
+                    rm -f tfplan tfplan-destroy || true
+                '''
+            }
         }
     }
 }
