@@ -21,3 +21,4 @@ timestamper:latest
 build-timeout:latest
 credentials:latest
 plain-credentials:latest
+job-dsl:latest
