@@ -158,17 +158,14 @@ ws-cleanup, timestamper, build-timeout, credentials, plain-credentials
 - ✅ Systemd service configurado
 - **Documentación:** Incluida en HITO_2_JENKINS_CONFIGURATION.md
 
-#### **Hito 2: Configurar Jenkins Basic Mode**
-- ✅ Custom Docker Image (Dockerfile + build)
-- ✅ Configuration as Code (JCasC)
-- ✅ 23 plugins pre-instalados
-- ✅ Tools configurados (Git, Docker, Terraform)
-- ✅ Cloud Build automatizado
-- ✅ Usuario admin configurado
-- ✅ Setup wizard deshabilitado
-- ✅ Reproducible con terraform destroy/apply
-- **Documentación:** docs/HITO_2_JENKINS_CONFIGURATION.md (completa)
-
+#### **Hito 2: Configuración de Jenkins con JCasC**
+- ✅ 24 plugins (23 + job-dsl) instalados via plugins.txt
+- ✅ Imagen custom jenkins-custom:1.4.0
+- ✅ JCasC con configuración automática
+- ✅ **Jobs completamente reproducibles** (mejora post-H5)
+- ✅ Usuario admin, permisos, herramientas pre-configuradas
+- **Documentación:** docs/HITO_2_JENKINS_CONFIGURATION.md
+- 
 #### **Hito 3: Conectar con Service Account**
 - ✅ gcloud CLI integrado en imagen custom (v1.1.0)
 - ✅ Configuración automática via startup script

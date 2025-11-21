@@ -529,6 +529,190 @@ Dashboard → Manage Jenkins → Tools
 
 **Nota:** En producción, con esta documentación, el setup tomaría ~30 minutos.
 
+
+ ---
+
+## Mejora Post-Lab: Jobs Completamente Reproducibles (v1.4.0)
+
+**Fecha:** 2025-11-21  
+**Motivación:** Eliminar configuración manual de jobs después de cada deploy
+
+### Problema Identificado
+
+Después de H5, cada vez que se hacía `terraform destroy/apply`, era necesario:
+- ❌ Reconfigurar credenciales GitHub manualmente
+- ❌ Recrear 3 jobs manualmente (15-20 min)
+- ❌ Reconfigurar webhooks
+
+**Solución:** Agregar jobs a JCasC usando plugin job-dsl.
+
+### Implementación
+
+#### 1. Agregar Plugin job-dsl
+
+**Archivo:** `jenkins/plugins.txt`
+```
+job-dsl:latest
+```
+
+**Resultado:** Permite crear jobs programáticamente vía JCasC.
+
+#### 2. Definir Jobs en jenkins-casc.yaml
+
+**Archivo:** `jenkins/jenkins-casc.yaml`
+
+Agregamos sección `jobs:` al final del archivo con 3 jobs:
+
+**a) github-integration-test** (Pipeline inline)
+```yaml
+jobs:
+  - script: >
+      pipelineJob('github-integration-test') {
+        description('Test GitHub integration with Jenkins')
+        properties {
+          githubProjectUrl('https://github.com/alcisternas/jenkins-gcp-cicd-lab/')
+        }
+        triggers {
+          githubPush()
+        }
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                stages {
+                  stage('Clone Repository') { ... }
+                  stage('List Files') { ... }
+                  stage('Show Git Info') { ... }
+                }
+              }
+            '''.stripIndent())
+            sandbox()
+          }
+        }
+      }
+```
+
+**b) terraform-integration-test** (Pipeline inline con Terraform)
+```yaml
+  - script: >
+      pipelineJob('terraform-integration-test') {
+        triggers { githubPush() }
+        definition {
+          cps {
+            script('''
+              pipeline {
+                agent any
+                environment {
+                  TF_IN_AUTOMATION = 'true'
+                  TF_INPUT = 'false'
+                }
+                stages {
+                  stage('Terraform Init') { ... }
+                  stage('Terraform Validate') { ... }
+                  stage('Terraform Plan') { ... }
+                }
+              }
+            '''.stripIndent())
+          }
+        }
+      }
+```
+
+**c) jenkins-cicd-pipeline** (Pipeline from SCM)
+```yaml
+  - script: >
+      pipelineJob('jenkins-cicd-pipeline') {
+        triggers { githubPush() }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/alcisternas/jenkins-gcp-cicd-lab.git')
+                  credentials('github-token')
+                }
+                branches('*/main')
+              }
+            }
+            scriptPath('jenkins/Jenkinsfile')
+          }
+        }
+      }
+```
+
+**Tipos de jobs:**
+- **CPS (Pipeline inline):** Script Groovy embebido directamente en JCasC
+- **cpsScm (Pipeline from SCM):** Lee Jenkinsfile desde repositorio Git
+
+#### 3. Nueva Imagen Custom
+
+**Versión:** 1.4.0  
+**Plugins totales:** 24 (23 originales + job-dsl)  
+**Tamaño:** ~400 MB  
+**Build time:** ~3 minutos
+
+**Build:**
+```powershell
+gcloud builds submit --config jenkins/cloudbuild.yaml .
+```
+
+#### 4. Deploy y Validación
+
+**Deploy:**
+```powershell
+cd terraform
+terraform destroy -auto-approve
+terraform apply -auto-approve
+```
+
+**Validación:**
+- Jenkins inicia → Dashboard muestra "Jenkins configured automatically via Configuration as Code (JCasC)"
+- 3 jobs aparecen automáticamente sin configuración manual
+- `git push` → 3 jobs se disparan automáticamente
+- ✅ SUCCESS en los 3 jobs
+
+### Resultado Final
+
+✅ **Jobs creados automáticamente** al iniciar Jenkins  
+✅ **Webhooks funcionando** - 3 jobs se disparan en cada push  
+✅ **Cero configuración manual** de jobs  
+✅ **100% reproducible** con destroy/apply  
+
+**Única configuración manual requerida:**
+- Credencial GitHub (token `ghp_...`) por seguridad
+
+**Jobs configurados:**
+1. `github-integration-test` - Valida integración Git
+2. `terraform-integration-test` - Ejecuta Terraform init/validate/plan
+3. `jenkins-cicd-pipeline` - Pipeline principal desde Jenkinsfile
+
+### Lecciones Aprendadas
+
+1. **Plugin job-dsl es esencial** para Jobs as Code en JCasC
+   - JCasC solo no puede crear jobs
+   - job-dsl proporciona DSL Groovy para definir jobs
+
+2. **Sintaxis es Groovy DSL**, no YAML
+   - Usar `script:` con pipeline Groovy
+   - Escape de comillas con triple comillas `'''`
+
+3. **Credenciales deben existir antes**
+   - Jobs referencian `github-token`
+   - Se debe crear manualmente (seguridad)
+
+4. **Error común:** `UnknownConfiguratorException: jobs`
+   - Significa que falta plugin job-dsl
+   - Solución: Agregar a plugins.txt
+
+5. **Webhooks requieren trigger explícito**
+   - `triggers { githubPush() }` en cada job
+   - Sin esto, jobs no se disparan automáticamente
+
+---
+
+
+
 ---
 
 ## Próximos Pasos
