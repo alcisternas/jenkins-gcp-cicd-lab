@@ -6,7 +6,7 @@ pipeline {
         GCP_PROJECT = 'possible-sun-471215-d3'
         TF_IN_AUTOMATION = 'true'
         TF_INPUT = 'false'
-        TF_WORKSPACE = 'terraform/test-module'
+        TF_DIR = 'terraform/test-module'
     }
     
     parameters {
@@ -86,7 +86,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 5: Terraform Init'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh '''
                         terraform init -upgrade
                         terraform version
@@ -100,7 +100,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 6: Terraform Validate'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh 'terraform validate'
                 }
             }
@@ -111,7 +111,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 7: Terraform Format Check'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh '''
                         echo "Checking Terraform formatting..."
                         terraform fmt -check -recursive || echo "Warning: Some files need formatting"
@@ -128,7 +128,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 8: Terraform Plan'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh '''
                         terraform plan -out=tfplan
                         echo ""
@@ -165,7 +165,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 10: Terraform Apply'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh '''
                         if [ -f tfplan ]; then
                             terraform apply tfplan
@@ -186,7 +186,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 11: Terraform Destroy Plan'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh 'terraform plan -destroy -out=tfplan-destroy'
                 }
             }
@@ -219,7 +219,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 13: Terraform Destroy'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh '''
                         if [ -f tfplan-destroy ]; then
                             terraform apply tfplan-destroy
@@ -240,7 +240,7 @@ pipeline {
                 echo '=========================================='
                 echo 'Stage 14: Terraform Outputs'
                 echo '=========================================='
-                dir(env.TF_WORKSPACE) {
+                dir(env.TF_DIR) {
                     sh 'terraform output -json || echo "No outputs available"'
                 }
             }
@@ -266,7 +266,7 @@ pipeline {
         }
         always {
             echo "Pipeline finished at: ${new Date()}"
-            dir(env.TF_WORKSPACE) {
+            dir(env.TF_DIR) {
                 sh '''
                     echo "Cleaning up plan files..."
                     rm -f tfplan tfplan-destroy || true
