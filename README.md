@@ -46,3 +46,4 @@ Implementar un pipeline CI/CD enterprise-grade siguiendo las mejores prácticas 
 - Jobs creados automáticamente desde jenkins-casc.yaml
 - Plugin job-dsl habilitado
 - Configuración 100% como código
+- Test webhook trigger #2
