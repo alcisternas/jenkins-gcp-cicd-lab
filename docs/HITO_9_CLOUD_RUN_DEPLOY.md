@@ -169,15 +169,13 @@ fastapi-app  https://fastapi-app-dv4pl47mda-uc.a.run.app  fastapi-app-00001-hcv 
 ```bash
 gcloud projects add-iam-policy-binding possible-sun-471215-d3 \
   --member="serviceAccount:jenkins-cicd-sa@..." \
-  --role="roles/viewer"
+  --role="roles/containeranalysis.ServiceAgent"
 ```
 
-**Permisos necesarios:**
+**Permisos incluidos:**
 - `containeranalysis.occurrences.list` - Describir imágenes
-- `run.services.create` - Crear servicios Cloud Run
-- `run.services.update` - Actualizar servicios
-- `run.services.get` - Obtener información de servicios
-- `iam.serviceaccounts.actAs` - Actuar como SA
+- `containeranalysis.occurrences.get` - Obtener detalles de imágenes
+- Container vulnerability scanning access
 
 **Roles totales del SA (11):**
 1. Artifact Registry Reader
@@ -185,12 +183,12 @@ gcloud projects add-iam-policy-binding possible-sun-471215-d3 \
 3. Cloud Build Editor
 4. Cloud Run Developer
 5. Compute Instance Admin
-6. IAM Service Account User
-7. Secret Manager Accessor
-8. Service Account User
-9. Storage Object Admin
-10. Storage Object Viewer
-11. **Viewer** ← Nuevo
+6. **Container Analysis Service Agent** ← Nuevo
+7. IAM Service Account User
+8. Secret Manager Accessor
+9. Service Account User
+10. Storage Object Admin
+11. Storage Object Viewer
 
 ---
 
@@ -261,9 +259,9 @@ Authentication: Allow unauthenticated
 Permission 'containeranalysis.occurrences.list' denied
 ```
 
-**Solución:** Agregar rol `roles/viewer` al Service Account.
+**Solución:** Agregar rol `roles/containeranalysis.ServiceAgent` al Service Account.
 
-**Aprendizaje:** Describir imágenes requiere permisos de Container Analysis, no solo Artifact Registry.
+**Aprendizaje:** Describir imágenes Docker requiere permisos específicos de Container Analysis, no solo Artifact Registry Reader.
 
 ### 2. Cloud Run Deployment Time
 **Observación:** Primera deployment toma ~2-3 minutos.
