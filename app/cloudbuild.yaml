@@ -1,0 +1,31 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/fastapi-app:$BUILD_ID'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/fastapi-app:latest'
+      - '-f'
+      - 'app/Dockerfile'
+      - 'app'
+
+  # Push the image with build ID tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/fastapi-app:$BUILD_ID'
+
+  # Push the latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/fastapi-app:latest'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/fastapi-app:$BUILD_ID'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/apps/fastapi-app:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
